@@ -1,27 +1,37 @@
 import { app, BrowserWindow } from "electron";
+import path from "path";
 
 let mainWindow;
 
 function createWindow() {
-	mainWindow = new BrowserWindow({});
+	const dirpath = path.join(__dirname, "..", "preload", "preload.js");
+	mainWindow = new BrowserWindow({
+		webPreferences: {
+			contextIsolation: false,
+			nodeIntegration: true,
+			preload: dirpath, // Path to your preload script
+		},
+	});
 
-	// Vite dev server URL
-	mainWindow.loadURL("http://localhost:5173");
+	console.log(dirpath);
+	//mainWindow.loadURL("http://localhost:5173");
+	mainWindow.loadURL("https://www.jitbit.com/screensharing");
 	mainWindow.on("closed", () => (mainWindow = null));
 }
 
+/* async function CustomDisplayMedia(...args) {
+	const newWindow = new BrowserWindow({
+		WebPreferences: {
+			contextIsolation: false,
+			nodeIntegration: true,
+		},
+	});
+
+	// Vite dev server URL
+	newWindow.loadURL("http://localhost:5173");
+	newWindow.show();
+} */
+
 app.whenReady().then(() => {
 	createWindow();
-});
-
-app.on("window-all-closed", () => {
-	if (process.platform !== "darwin") {
-		app.quit();
-	}
-});
-
-app.on("activate", () => {
-	if (mainWindow == null) {
-		createWindow();
-	}
 });
