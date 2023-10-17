@@ -1,57 +1,37 @@
-import { desktopCapturer } from "electron";
+// All of the Node.js APIs are available in the preload process.
+// It has the same sandbox as a Chrome extension.
 
-let _getDisplayMedia;
+// inject renderer.js into the web page
+window.addEventListener("DOMContentLoaded", () => {
+	try {
+		const rendererScript = document.createElement("script");
+		rendererScript.text = ` // This file is required by the index.html file and will
+		const electron = window.require('electron');
+		const ipcRenderer  = electron.ipcRenderer;
+  // override getDisplayMedia
+  navigator.mediaDevices.getDisplayMedia = async () => {
+    const selectedSource = await ipcRenderer.invoke("get-display-media") 
 
-_getDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-navigator.mediaDevices.getDisplayMedia = CallCustomDisplayMedia;
-
-async function CallCustomDisplayMedia(...args) {
-	console.log(args);
-	console.log(_getDisplayMedia);
-
-	const sources = await desktopCapturer.getSources({
-		types: ["window", "screen"],
-	});
-
-	const selectedSource = sources[0];
-
-	//return await streamInterface(selectedSource.id);
-	return Promise.resolve();
-}
-
-window.isWorking = true;
-
-async function streamInterface(sourceId) {
-	console.log("TESTE");
-	console.log(sourceId);
-	const stream = await navigator.mediaDevices.getUserMedia({
-		audio: false,
-		video: {
-			mandatory: {
-				chromeMediaSource: "desktop",
-				chromeMediaSourceId: sourceId,
-				minWidth: 1280,
-				maxWidth: 1280,
-				minHeight: 720,
-				maxHeight: 720,
-			},
-		},
-	});
-
-	return stream;
-}
-
-/* async function assignSelectSourceHandler() {
-	const actionValues = ["monitor", "window", "none"];
-	const action = await dialog.showMessageBox(window, {
-		type: "question",
-		buttons: ["Monitor", "Window", "Cancel"],
-		title: "Type of source",
-		normalizeAccessKeys: true,
-		defaultId: 0,
-		cancelId: 2,
-		message: "Please choose the type of source (Monitor/Window)",
-	});
-	return actionValues[action.response];
-}
- */
+    // create MediaStream
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: "desktop",
+          chromeMediaSourceId: selectedSource.id,
+          minWidth: 1280,
+          maxWidth: 1280,
+          minHeight: 720,
+          maxHeight: 720,
+        },
+      },
+    });
+  
+    return stream;
+  };
+  `;
+		document.body.appendChild(rendererScript);
+	} catch (e) {
+		console.log(e);
+	}
+});
