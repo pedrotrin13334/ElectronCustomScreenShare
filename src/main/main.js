@@ -10,14 +10,18 @@ function createWindow() {
 		height: 600,
 		webPreferences: {
 			preload: path.join(__dirname, "..", "preload", "preload.js"),
-			nodeIntegration: true,
-			contextIsolation: false,
+			nodeIntegration: false,
+			contextIsolation: true,
 		},
 	});
 
 	// and load the index.html of the app.
-	//mainWindow.loadURL("https://google.com"); // you can load any website here
+	const userAgent = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`;
+	mainWindow.webContents.setUserAgent(userAgent);
 	mainWindow.loadURL("https://www.jitbit.com/screensharing");
+	/*mainWindow.loadURL(
+		"https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZjM5ZDVlODMtYzNlNC00MTc0LTlhYjYtYWQ0ZDNlYzFhYjc0%40thread.v2/0?context=%7b%22Tid%22%3a%22d2629842-54c3-41ec-bab5-2adeebe939c3%22%2c%22Oid%22%3a%22767e9d43-85c8-4394-b57c-8e7e5d10cb6b%22%7d",
+	);*/
 	// Open the DevTools.
 	// mainWindow.webContents.openDevTools()
 }
@@ -29,7 +33,6 @@ app.whenReady().then(() => {
 	createWindow();
 
 	ipcMain.handle("get-display-media", async () => {
-		console.log("Cheguei Aqui");
 		const sources = await desktopCapturer.getSources({
 			types: ["window", "screen"],
 		});
@@ -38,6 +41,7 @@ app.whenReady().then(() => {
 		// to select the correct source like Google Chrome does
 		const selectedSource = sources[0]; // this is just for testing purposes
 
+		console.log("Selected Sources: ", selectedSource);
 		return selectedSource;
 	});
 
